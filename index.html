@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A Digital Flower for You</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #030712;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Particle Canvas */
+    #canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Header Title */
+    .title-container {
+      position: absolute;
+      top: 8%;
+      text-align: center;
+      z-index: 10;
+      animation: fadeIn 3s ease-in-out forwards;
+    }
+
+    .title-container h1 {
+      color: #f472b6;
+      font-size: 2.5rem;
+      text-shadow: 0 0 15px rgba(244, 114, 182, 0.6), 0 0 30px rgba(236, 72, 153, 0.4);
+      letter-spacing: 2px;
+      font-weight: 300;
+    }
+
+    /* Secret Hidden Message */
+    .secret-message {
+      position: absolute;
+      bottom: 120px;
+      z-index: 2;
+      color: rgba(244, 114, 182, 0.35);
+      font-size: 1.4rem;
+      font-weight: bold;
+      letter-spacing: 4px;
+      text-shadow: 0 0 10px rgba(244, 114, 182, 0.2);
+      filter: blur(0.5px);
+      transition: all 0.5s ease;
+      user-select: none;
+      animation: pulseGlow 3s infinite alternate;
+    }
+
+    .secret-message:hover {
+      color: rgba(244, 114, 182, 0.9);
+      filter: blur(0px);
+      text-shadow: 0 0 15px rgba(244, 114, 182, 0.8);
+    }
+
+    /* Flower Garden Container */
+    .garden {
+      position: relative;
+      width: 300px;
+      height: 400px;
+      z-index: 5;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+    }
+
+    /* Stems */
+    .stem {
+      position: absolute;
+      bottom: 0;
+      background: linear-gradient(to top, #064e3b, #10b981);
+      border-radius: 10px;
+      transform-origin: bottom center;
+      animation: growStem 2.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+
+    .stem-main {
+      width: 8px;
+      height: 260px;
+      left: calc(50% - 4px);
+    }
+
+    .stem-left {
+      width: 6px;
+      height: 200px;
+      left: calc(50% - 3px);
+      transform: rotate(-22deg);
+      animation-delay: 0.3s;
+    }
+
+    .stem-right {
+      width: 6px;
+      height: 210px;
+      left: calc(50% - 3px);
+      transform: rotate(22deg);
+      animation-delay: 0.5s;
+    }
+
+    /* Flower Heads */
+    .flower {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      transform: scale(0);
+      animation: bloom 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .flower-main {
+      top: 60px;
+      left: calc(50% - 40px);
+      animation-delay: 2.2s;
+    }
+
+    .flower-left {
+      top: 130px;
+      left: 30px;
+      animation-delay: 2.5s;
+    }
+
+    .flower-right {
+      top: 120px;
+      right: 30px;
+      animation-delay: 2.7s;
+    }
+
+    /* Petals */
+    .petal {
+      position: absolute;
+      width: 35px;
+      height: 35px;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      border-radius: 50% 50% 0 50%;
+      box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
+      top: 22px;
+      left: 22px;
+      transform-origin: 100% 100%;
+    }
+
+    .petal:nth-child(1) { transform: rotate(0deg) translate(-15px, -15px); }
+    .petal:nth-child(2) { transform: rotate(72deg) translate(-15px, -15px); }
+    .petal:nth-child(3) { transform: rotate(144deg) translate(-15px, -15px); }
+    .petal:nth-child(4) { transform: rotate(216deg) translate(-15px, -15px); }
+    .petal:nth-child(5) { transform: rotate(288deg) translate(-15px, -15px); }
+
+    /* Flower Center */
+    .center {
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      background: radial-gradient(circle, #fde047, #eab308);
+      border-radius: 50%;
+      top: 27px;
+      left: 27px;
+      z-index: 6;
+      box-shadow: 0 0 12px #fde047;
+    }
+
+    /* Glowing Floating Hearts */
+    .heart {
+      position: absolute;
+      color: #ec4899;
+      font-size: 1rem;
+      pointer-events: none;
+      animation: floatUp 4s linear infinite;
+      opacity: 0;
+      z-index: 4;
+    }
+
+    /* Keyframe Animations */
+    @keyframes growStem {
+      0% { height: 0; }
+      100% { height: var(--target-height, 260px); }
+    }
+
+    @keyframes bloom {
+      0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulseGlow {
+      0% { opacity: 0.25; text-shadow: 0 0 5px rgba(244, 114, 182, 0.2); }
+      100% { opacity: 0.5; text-shadow: 0 0 15px rgba(244, 114, 182, 0.6); }
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.8); opacity: 1; }
+      100% { transform: translateY(-300px) scale(1.3); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Particles Canvas -->
+  <canvas id="canvas"></canvas>
+
+  <!-- Title Header -->
+  <div class="title-container">
+    <h1>💖 This is for you 💖</h1>
+  </div>
+
+  <!-- Secret Message Hidden Behind/Between the Stems -->
+  <div class="secret-message">I LOVE YOU</div>
+
+  <!-- Animated Flower Garden -->
+  <div class="garden">
+    <!-- Stems -->
+    <div class="stem stem-left" style="--target-height: 200px;"></div>
+    <div class="stem stem-main" style="--target-height: 260px;"></div>
+    <div class="stem stem-right" style="--target-height: 210px;"></div>
+
+    <!-- Main Center Flower -->
+    <div class="flower flower-main">
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="center"></div>
+    </div>
+
+    <!-- Left Flower -->
+    <div class="flower flower-left">
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="center"></div>
+    </div>
+
+    <!-- Right Flower -->
+    <div class="flower flower-right">
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="petal"></div>
+      <div class="center"></div>
+    </div>
+  </div>
+
+  <script>
+    // Canvas Fireflies Particles Effect
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.radius = Math.random() * 2 + 1;
+        this.color = `hsla(${Math.random() * 60 + 280}, 100%, 75%, ${Math.random() * 0.8 + 0.2})`;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = -Math.random() * 0.5 - 0.2;
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.y < 0 || this.x < 0 || this.x > canvas.width) {
+          this.reset();
+          this.y = canvas.height;
+        }
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        ctx.fill();
+      }
+    }
+
+    const particles = Array.from({ length: 65 }, () => new Particle());
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    // Spawning Floating Hearts Dynamics
+    function createHeart() {
+      const heart = document.createElement('div');
+      heart.classList.add('heart');
+      heart.innerHTML = '♥';
+      heart.style.left = (Math.random() * 200 + (window.innerWidth / 2 - 100)) + 'px';
+      heart.style.bottom = '100px';
+      heart.style.animationDuration = (Math.random() * 2 + 3) + 's';
+      document.body.appendChild(heart);
+
+      setTimeout(() => {
+        heart.remove();
+      }, 4000);
+    }
+
+    setInterval(createHeart, 600);
+  </script>
+</body>
+</html>
